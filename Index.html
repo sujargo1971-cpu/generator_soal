@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart SAS Builder V2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        corporate: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Gaya khusus pencetakan dokumen */
+        @media print {
+            @page { margin: 2cm; size: A4; }
+            body { font-family: 'Times New Roman', Times, serif; background: white; color: black; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .page-break { page-break-before: always; }
+            table { width: 100% !important; border-collapse: collapse; }
+            th, td { border: 1px solid black; padding: 6px; }
+            #main-container { max-width: 100%; padding: 0; margin: 0; }
+            .kartu-soal { border: 2px solid black; margin-bottom: 20px; page-break-inside: avoid; }
+            .shadow-md, .shadow-lg, .rounded-xl, .rounded-md { box-shadow: none !important; border-radius: 0 !important; }
+            .bg-white { background: transparent !important; }
+        }
+        .print-only { display: none; }
+        .tab-active { border-bottom: 3px solid #0ea5e9; color: #0284c7; font-weight: 600; }
+        .tab-inactive { color: #64748b; }
+        .tab-inactive:hover { color: #0f172a; }
+        
+        /* Custom Scrollbar for better UI */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-white/80 z-[100] hidden flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-corporate-500 border-t-transparent"></div>
+        <p class="mt-4 text-corporate-700 font-semibold">Menyinkronkan Database...</p>
+    </div>
+
+    <!-- Header UI -->
+    <header id="main-header" class="bg-corporate-600 text-white shadow-md no-print hidden">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Smart SAS Builder V2
+                </h1>
+                <p class="text-corporate-100 text-sm mt-1">Generator Kelengkapan Administrasi Evaluasi Pembelajaran</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="resetData()" class="text-sm bg-corporate-700 hover:bg-corporate-800 px-3 py-1.5 rounded transition">Reset Draf</button>
+                <button onclick="logout()" class="text-sm bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded transition">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-container" class="flex-grow max-w-7xl mx-auto w-full px-4 py-6">
+
+        <!-- VIEW 0: LOGIN -->
+        <section id="view-login" class="min-h-[70vh] flex items-center justify-center">
+            <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border border-gray-100">
+                <div class="text-center mb-8 border-b-2 border-corporate-500 pb-4">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-corporate-100 text-corporate-600 mb-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-800 tracking-wide uppercase">SMART SAS BUILDER V2</h1>
+                    <p class="text-sm text-gray-500 mt-2">Masuk untuk memulai penyusunan evaluasi</p>
+                </div>
+
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Username (Peran)</label>
+                        <select id="login-username" class="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-corporate-500 focus:border-corporate-500 bg-gray-50">
+                            <option value="admin">Admin</option>
+                            <option value="guru">Guru</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+                        <input type="password" id="login-password" class="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-corporate-500 focus:border-corporate-500" placeholder="Masukkan password...">
+                        <p class="text-xs text-gray-400 mt-1 italic">*Gunakan password bebas untuk simulasi demo (cth: 123)</p>
+                    </div>
+                    <button onclick="doLogin()" class="w-full bg-corporate-600 hover:bg-corporate-700 text-white font-bold py-3 px-4 rounded-md transition shadow-md flex items-center justify-center gap-2 mt-4">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                        Masuk Aplikasi
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 1: SETUP FORM -->
+        <section id="view-setup" class="space-y-6 hidden">
+            <!-- Panel Identitas -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-lg font-bold text-gray-800 border-b pb-2 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-corporate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Identitas Evaluasi
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Mata Pelajaran <span class="text-red-500">*</span></label>
+                        <select id="id-mapel" class="w-full border border-gray-300 rounded-md p-2 focus:ring-corporate-500 focus:border-corporate-500">
+                            <option value="">-- Pilih Mata Pelajaran --</option>
+                            <option value="Pendidikan Agama dan Budi Pekerti">Pendidikan Agama dan Budi Pekerti</option>
+                            <option value="Pendidikan Pancasila">Pendidikan Pancasila</option>
+                            <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                            <option value="Matematika">Matematika</option>
+                            <option value="Ilmu Pengetahuan Alam dan Sosial (IPAS)">Ilmu Pengetahuan Alam dan Sosial (IPAS)</option>
+                            <option value="Pendidikan Jasmani Olahraga dan Kesehatan (PJOK)">PJOK</option>
+                            <option value="Seni Budaya">Seni Budaya</option>
+                            <option value="Bahasa Inggris">Bahasa Inggris</option>
+                            <option value="Muatan Lokal">Muatan Lokal</option>
+                            <option value="Koding dan Kecerdasan Artifisial (KKA)">Koding dan Kecerdasan Artifisial (KKA)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kelas <span class="text-red-500">*</span></label>
+                        <select id="id-kelas" class="w-full border border-gray-300 rounded-md p-2 focus:ring-corporate-500 focus:border-corporate-500">
+                            <option value="">-- Pilih Kelas --</option>
+                            <option value="I (Satu)">I (Satu)</option>
+                            <option value="II (Dua)">II (Dua)</option>
+                            <option value="III (Tiga)">III (Tiga)</option>
+                            <option value="IV (Empat)">IV (Empat)</option>
+                            <option value="V (Lima)">V (Lima)</option>
+                            <option value="VI (Enam)">VI (Enam)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Semester <span class="text-red-500">*</span></label>
+                        <select id="id-semester" class="w-full border border-gray-300 rounded-md p-2 focus:ring-corporate-500 focus:border-corporate-500">
+                            <option value="">-- Pilih Semester --</option>
+                            <option value="Ganjil">Ganjil</option>
+                            <option value="Genap">Genap</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kurikulum</label>
+                        <input type="text" id="id-kurikulum" class="w-full border border-gray-300 bg-gray-100 cursor-not-allowed rounded-md p-2 focus:outline-none" value="Merdeka" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Guru Pembuat <span class="text-red-500">*</span></label>
+                        <input type="text" id="id-guru" class="w-full border border-gray-300 rounded-md p-2 focus:ring-corporate-500 focus:border-corporate-500" placeholder="Contoh: Budi Santoso, S.Pd.">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Konfigurasi Soal -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center border-b pb-2 mb-4">
+                    <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-corporate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                        Konfigurasi Tujuan & Materi Soal
+                    </h2>
+                    <button onclick="addBlock()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1 shadow">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Tambah Baris Materi
+                    </button>
+                </div>
+
+                <!-- Container untuk baris-baris soal dinamis -->
+                <div id="blocks-container" class="space-y-6">
+                    <!-- Blocks di-render dari JS -->
+                </div>
+
+                <div class="mt-6 bg-blue-50 p-4 rounded-lg flex items-center justify-between border border-blue-100">
+                    <span class="text-blue-800 font-medium">Total Akumulasi Soal:</span>
+                    <span id="total-soal-badge" class="bg-blue-600 text-white font-bold px-4 py-1 rounded-full text-lg shadow-sm">0</span>
+                </div>
+            </div>
+
+            <!-- Tombol Eksekusi -->
+            <div class="flex justify-end gap-3">
+                <button id="btn-generate" onclick="generateSAS()" class="bg-corporate-600 hover:bg-corporate-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg flex items-center gap-2 transition transform hover:scale-105">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    <span id="btn-generate-text">Generate Perangkat SAS</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- VIEW 2: HASIL (TABS) -->
+        <section id="view-results" class="bg-white rounded-xl shadow-sm border border-gray-200 hidden no-print flex-col h-full">
+            <div class="border-b px-6 pt-4 flex flex-wrap gap-6 justify-between items-center">
+                <nav class="flex space-x-6" aria-label="Tabs">
+                    <button onclick="switchTab('naskah')" id="tab-naskah" class="tab-active pb-3 text-sm font-medium transition">Naskah Soal</button>
+                    <button onclick="switchTab('kisi')" id="tab-kisi" class="tab-inactive pb-3 text-sm font-medium transition">Kisi-kisi</button>
+                    <button onclick="switchTab('kartu')" id="tab-kartu" class="tab-inactive pb-3 text-sm font-medium transition">Kartu Soal</button>
+                    <button onclick="switchTab('kunci')" id="tab-kunci" class="tab-inactive pb-3 text-sm font-medium transition">Kunci Jawaban</button>
+                </nav>
+                <div class="pb-3 flex gap-2">
+                    <button onclick="backToSetup()" class="text-sm text-gray-600 hover:text-gray-900 border px-3 py-1.5 rounded transition">← Edit Konfigurasi</button>
+                    <!-- Tombol Simpan ke GAS -->
+                    <button onclick="saveToDatabase()" class="text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded transition shadow flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                        Simpan Arsip (DB)
+                    </button>
+                    <button onclick="window.print()" class="text-sm bg-corporate-600 hover:bg-corporate-700 text-white px-3 py-1.5 rounded transition shadow flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        Cetak Dokumen
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6 overflow-x-auto">
+                <!-- Konten Tab -->
+                <div id="content-naskah" class="tab-content block"></div>
+                <div id="content-kisi" class="tab-content hidden"></div>
+                <div id="content-kartu" class="tab-content hidden"></div>
+                <div id="content-kunci" class="tab-content hidden"></div>
+            </div>
+        </section>
+
+        <!-- AREA CETAK KHUSUS -->
+        <div id="print-area" class="print-only"></div>
+
+    </main>
+
+    <!-- Script Utama -->
+    <script>
+        /**
+         * STATE MANAGEMENT
+         */
+        const STORAGE_KEY = 'smart_sas_draft_v2';
+        // URL WebApp GAS Anda (Isi jika hosting di GitHub Pages agar terhubung ke Spreadsheet)
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwJ1VBsGjmlH-eKFWXdpHcRFhZx0GJwZ8WHqUo-cQv-or9SlMHaEdYF-RlnK-ugDHz0/exec'; 
+        // Simulasi Database Global GAS
+        let db = { archives: [] }; 
+
+        let appState = {
+            identitas: {
+                mapel: '',
+                kelas: '',
+                semester: '',
+                kurikulum: 'Merdeka',
+                guru: ''
+            },
+            blocks: [] // Berisi object konfigurasi per baris materi
+        };
+
+        let generatedData = []; // Array flat untuk setiap butir soal setelah dikalkulasi
+
+        window.onload = init;
+
+        function init() {
+            checkLogin();
+        }
+
+        /**
+         * LOGIN SYSTEM
+         */
+        function checkLogin() {
+            const isLoggedIn = sessionStorage.getItem('sas_logged_in');
+            if (isLoggedIn) {
+                showSetup();
+            } else {
+                showLogin();
+            }
+        }
+
+        function doLogin() {
+            const user = document.getElementById('login-username').value;
+            const pass = document.getElementById('login-password').value;
+            
+            if (!pass) {
+                alert('Silakan masukkan password!');
+                return;
+            }
+
+            sessionStorage.setItem('sas_logged_in', 'true');
+            sessionStorage.setItem('sas_role', user);
+            
+            showSetup();
+        }
+
+        function logout() {
+            sessionStorage.removeItem('sas_logged_in');
+            sessionStorage.removeItem('sas_role');
+            showLogin();
+        }
+
+        function showLogin() {
+            document.getElementById('main-header').classList.add('hidden');
+            document.getElementById('view-setup').classList.add('hidden');
+            document.getElementById('view-results').classList.add('hidden');
+            document.getElementById('view-login').classList.remove('hidden');
+        }
+
+        function showSetup() {
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('main-header').classList.remove('hidden');
+            document.getElementById('view-setup').classList.remove('hidden');
+            
+            loadLocalDraft(); // Load draft jika browser refresh
+            loadServerData(); // Mode Simulasi / Load GAS Spreadsheet
+
+            if (appState.blocks.length === 0) {
+                addBlock();
+            } else {
+                renderAllBlocks();
+            }
+            populateIdentitasUI();
+            setupAutoSave();
+            updateSummary();
+        }
+
+        /**
+         * DATABASE & SIMULATION MODE (WAJIB GAS)
+         */
+        function startLoading() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            document.getElementById('loading-overlay').classList.add('flex');
+        }
+
+        function endLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('loading-overlay').classList.remove('flex');
+        }
+
+        function loadServerData() {
+            startLoading();
+            if (typeof google !== 'undefined') {
+                // MODE PRODUCTION 1 (Host di Google Apps Script)
+                console.log("Mode Apps Script Aktif");
+                google.script.run
+                    .withSuccessHandler(res => {
+                        db = res;
+                        console.log("Database dimuat:", db);
+                        endLoading();
+                    })
+                    .withFailureHandler(err => {
+                        console.error(err);
+                        endLoading();
+                    })
+                    .getAllData();
+            } else if (GAS_API_URL !== '') {
+                // MODE PRODUCTION 2 (Host di GitHub, DB di GAS)
+                console.log("Mode GitHub Aktif: Fetching dari GAS API");
+                fetch(GAS_API_URL + '?action=getData')
+                    .then(response => response.json())
+                    .then(res => {
+                        db = res;
+                        console.log("Database dimuat via API:", db);
+                        endLoading();
+                    })
+                    .catch(err => {
+                        console.error("Gagal load dari API", err);
+                        endLoading();
+                    });
+            } else {
+                // MODE SIMULASI (Canvas / Lokal tanpa URL)
+                console.log("Mode Simulasi Aktif: Menggunakan dummy/memory database");
+                setTimeout(() => {
+                    endLoading();
+                }, 500);
+            }
+        }
+
+        function saveToDatabase() {
+            // Validasi: pastikan sudah pernah digenerate
+            if(generatedData.length === 0) {
+                alert("Silakan Generate dokumen terlebih dahulu!");
+                return;
+            }
+
+            const totalSoal = appState.blocks.reduce((acc, curr) => 
+                acc + (parseInt(curr.jmlMudah)||0) + (parseInt(curr.jmlSedang)||0) + (parseInt(curr.jmlSulit)||0), 0);
+
+            const record = {
+                id: 'SAS-' + new Date().getTime(),
+                tanggal: new Date().toLocaleString('id-ID'),
+                mapel: appState.identitas.mapel,
+                kelas: appState.identitas.kelas,
+                guru: appState.identitas.guru,
+                totalSoal: totalSoal,
+                dataJson: JSON.stringify(appState)
+            };
+
+            startLoading();
+            
+            if (typeof google !== 'undefined') {
+                // GAS SAVE PRODUCTION
+                google.script.run
+                    .withSuccessHandler(res => {
+                        db = res; // Update db dari server
+                        alert("Berhasil! Arsip telah disimpan ke Google Spreadsheet.");
+                        endLoading();
+                    })
+                    .withFailureHandler(err => {
+                        alert("Gagal menyimpan data: " + err);
+                        endLoading();
+                    })
+                    .saveArchive(record);
+            } else if (GAS_API_URL !== '') {
+                // GITHUB SAVE PRODUCTION (Fetch POST ke GAS API)
+                fetch(GAS_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'saveData', data: record })
+                })
+                .then(response => response.json())
+                .then(res => {
+                    if(res.status === 'success') {
+                        db = res.data;
+                        alert("Berhasil! Arsip dikirim dari GitHub ke Spreadsheet.");
+                    } else {
+                        alert("Gagal: " + res.message);
+                    }
+                    endLoading();
+                })
+                .catch(err => {
+                    alert("Error koneksi ke API: " + err);
+                    endLoading();
+                });
+            } else {
+                // SIMULASI SAVE
+                setTimeout(() => {
+                    db.archives.push(record);
+                    alert("Mode Simulasi: Data berhasil diarsipkan ke memory lokal!\n\nID: " + record.id);
+                    endLoading();
+                }, 600);
+            }
+        }
+
+
+        /**
+         * AUTO SAVE DRAFT (LOCAL STORAGE)
+         */
+        function loadLocalDraft() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appState = JSON.parse(saved);
+                } catch(e) {
+                    console.error("Gagal load data", e);
+                }
+            }
+        }
+
+        function setupAutoSave() {
+            const inputs = ['id-mapel', 'id-kelas', 'id-semester', 'id-guru'];
+            inputs.forEach(id => {
+                document.getElementById(id).addEventListener('change', (e) => {
+                    const key = id.replace('id-', '');
+                    appState.identitas[key] = e.target.value;
+                    saveState();
+                });
+            });
+        }
+
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            updateSummary();
+        }
+
+        function resetData() {
+            if (confirm("Apakah Anda yakin ingin menghapus semua draf inputan?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            }
+        }
+
+        function populateIdentitasUI() {
+            if(appState.identitas.mapel) document.getElementById('id-mapel').value = appState.identitas.mapel;
+            if(appState.identitas.kelas) document.getElementById('id-kelas').value = appState.identitas.kelas;
+            if(appState.identitas.semester) document.getElementById('id-semester').value = appState.identitas.semester;
+            if(appState.identitas.guru) document.getElementById('id-guru').value = appState.identitas.guru;
+        }
+
+        /**
+         * MANAJEMEN BLOK SOAL (DINAMIS)
+         */
+        function getEmptyBlock() {
+            return {
+                id: 'blk_' + Date.now() + Math.random().toString(36).substr(2, 5),
+                tp: '',
+                materi: '',
+                bentukSoal: 'Pilihan Ganda',
+                jmlMudah: 0,
+                jmlSedang: 0,
+                jmlSulit: 0,
+                imgBase64: null // Fitur gambar lokal
+            };
+        }
+
+        function addBlock() {
+            appState.blocks.push(getEmptyBlock());
+            saveState();
+            renderAllBlocks();
+        }
+
+        function removeBlock(id) {
+            if (appState.blocks.length <= 1) {
+                alert("Minimal harus ada 1 baris materi.");
+                return;
+            }
+            appState.blocks = appState.blocks.filter(b => b.id !== id);
+            saveState();
+            renderAllBlocks();
+        }
+
+        function renderAllBlocks() {
+            const container = document.getElementById('blocks-container');
+            container.innerHTML = '';
+            
+            appState.blocks.forEach((block, index) => {
+                const div = document.createElement('div');
+                div.className = "p-4 bg-gray-50 border border-gray-200 rounded-lg relative transition hover:border-corporate-300";
+                
+                div.innerHTML = `
+                    <div class="absolute top-2 right-2 flex gap-1">
+                        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded font-bold">Baris ${index + 1}</span>
+                        <button onclick="removeBlock('${block.id}')" class="bg-red-100 hover:bg-red-200 text-red-600 px-2 py-1 rounded text-xs transition" title="Hapus Baris">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Tujuan Pembelajaran</label>
+                            <textarea oninput="updateBlock('${block.id}', 'tp', this.value)" class="w-full text-sm border border-gray-300 rounded p-2 h-20 focus:ring-1 focus:ring-corporate-500" placeholder="Murid dapat menjelaskan...">${block.tp}</textarea>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Materi Esensial</label>
+                                <input type="text" oninput="updateBlock('${block.id}', 'materi', this.value)" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-1 focus:ring-corporate-500" value="${block.materi}" placeholder="Cth: Fotosintesis">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Bentuk Soal</label>
+                                    <select onchange="updateBlock('${block.id}', 'bentukSoal', this.value)" class="w-full text-sm border border-gray-300 rounded p-2 bg-white">
+                                        <option value="Pilihan Ganda" ${block.bentukSoal === 'Pilihan Ganda' ? 'selected' : ''}>Pilihan Ganda</option>
+                                        <option value="Isian Singkat" ${block.bentukSoal === 'Isian Singkat' ? 'selected' : ''}>Isian Singkat</option>
+                                        <option value="Uraian" ${block.bentukSoal === 'Uraian' ? 'selected' : ''}>Uraian</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Sisipkan Gambar (Opsional)</label>
+                                    <input type="file" accept="image/*" onchange="handleImageUpload(event, '${block.id}')" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-corporate-50 file:text-corporate-700 hover:file:bg-corporate-100">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-gray-200">
+                        <label class="block text-xs font-semibold text-gray-600 mb-2">Alokasi Jumlah Soal Berdasarkan Tingkat Kesulitan:</label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded w-16 text-center">Mudah</span>
+                                <input type="number" min="0" oninput="updateBlock('${block.id}', 'jmlMudah', this.value)" class="w-full text-sm border border-gray-300 rounded p-1 text-center" value="${block.jmlMudah || 0}">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded w-16 text-center">Sedang</span>
+                                <input type="number" min="0" oninput="updateBlock('${block.id}', 'jmlSedang', this.value)" class="w-full text-sm border border-gray-300 rounded p-1 text-center" value="${block.jmlSedang || 0}">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded w-16 text-center">Sulit</span>
+                                <input type="number" min="0" oninput="updateBlock('${block.id}', 'jmlSulit', this.value)" class="w-full text-sm border border-gray-300 rounded p-1 text-center" value="${block.jmlSulit || 0}">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateBlock(id, field, value) {
+            const block = appState.blocks.find(b => b.id === id);
+            if (block) {
+                if (['jmlMudah', 'jmlSedang', 'jmlSulit'].includes(field)) {
+                    value = parseInt(value) || 0;
+                    if (value < 0) value = 0;
+                }
+                block[field] = value;
+                saveState();
+            }
+        }
+
+        function updateSummary() {
+            let total = 0;
+            appState.blocks.forEach(b => {
+                total += (parseInt(b.jmlMudah)||0) + (parseInt(b.jmlSedang)||0) + (parseInt(b.jmlSulit)||0);
+            });
+            const badge = document.getElementById('total-soal-badge');
+            if(badge) badge.innerText = total;
+        }
+
+        /**
+         * IMAGE HANDLING (Konversi ke Base64 lokal tanpa server)
+         */
+        function handleImageUpload(event, blockId) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validasi ukuran < 2MB
+            if (file.size > 2 * 1024 * 1024) {
+                alert("Ukuran gambar maksimal 2MB!");
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                updateBlock(blockId, 'imgBase64', e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        /**
+         * LOGIKA GENERATOR UTAMA
+         */
+        function generateSAS() {
+            // 1. Validasi Identitas
+            const mapel = document.getElementById('id-mapel').value;
+            const kelas = document.getElementById('id-kelas').value;
+            const semester = document.getElementById('id-semester').value;
+            const guru = document.getElementById('id-guru').value;
+
+            if (!mapel || !kelas || !semester || !guru) {
+                alert("Harap lengkapi semua field Identitas Evaluasi yang bertanda bintang (*).");
+                return;
+            }
+            
+            // Simpan identitas ke state
+            appState.identitas = { mapel, kelas, semester, kurikulum: 'Merdeka', guru };
+            saveState();
+
+            // 2. Kalkulasi Data (Ekstrak ke list datar / array of items)
+            generatedData = [];
+            let currentNo = 1;
+            
+            for (let i = 0; i < appState.blocks.length; i++) {
+                const block = appState.blocks[i];
+                if (!block.tp || !block.materi) {
+                    alert(`Baris ke-${i+1} belum memiliki Tujuan Pembelajaran atau Materi.`);
+                    return;
+                }
+                
+                const jMudah = parseInt(block.jmlMudah) || 0;
+                const jSedang = parseInt(block.jmlSedang) || 0;
+                const jSulit = parseInt(block.jmlSulit) || 0;
+                
+                if (jMudah + jSedang + jSulit === 0) {
+                    alert(`Baris ke-${i+1} minimal harus memiliki 1 jumlah soal di salah satu tingkat kesulitan.`);
+                    return;
+                }
+
+                // Push item Mudah
+                for(let m=0; m<jMudah; m++) { pushSoalItem(block, 'Mudah', currentNo++); }
+                // Push item Sedang
+                for(let s=0; s<jSedang; s++) { pushSoalItem(block, 'Sedang', currentNo++); }
+                // Push item Sulit
+                for(let t=0; t<jSulit; t++) { pushSoalItem(block, 'Sulit', currentNo++); }
+            }
+
+            // 3. Render Visual (Animasi Loading Sederhana)
+            const btn = document.getElementById('btn-generate');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<svg class="animate-spin w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="4" stroke-linecap="round" class="opacity-25"></circle><path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" class="opacity-75"></path></svg> Memproses...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                renderDokumen();
+                
+                document.getElementById('view-setup').classList.add('hidden');
+                document.getElementById('view-results').classList.remove('hidden');
+                document.getElementById('view-results').classList.add('flex');
+                
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                
+                switchTab('naskah'); // default tab
+            }, 800);
+        }
+
+        function pushSoalItem(block, tingkat, no) {
+            generatedData.push({
+                no: no,
+                tp: block.tp,
+                materi: block.materi,
+                bentuk: block.bentukSoal,
+                tingkat: tingkat,
+                img: block.imgBase64,
+                indikator: `Disajikan stimulus, murid dapat ${getIndikatorKKO(tingkat, block.materi)}`
+            });
+        }
+
+        function getIndikatorKKO(tingkat, materi) {
+            // Simulasi taksonomi bloom / KKO sederhana untuk indikator otomatis
+            if (tingkat === 'Mudah') return `menyebutkan bagian dari ${materi.toLowerCase()} dengan benar.`;
+            if (tingkat === 'Sedang') return `menjelaskan konsep ${materi.toLowerCase()} secara logis.`;
+            return `menganalisis permasalahan terkait ${materi.toLowerCase()} secara kritis.`;
+        }
+
+        /**
+         * RENDER OUTPUT (Naskah, Kisi, Kartu, Kunci)
+         */
+        function renderDokumen() {
+            renderNaskah();
+            renderKisiKisi();
+            renderKartu();
+            renderKunci();
+        }
+
+        function buildKopHeader(judul) {
+            const { mapel, kelas, semester, kurikulum } = appState.identitas;
+            return `
+                <div class="text-center mb-6 border-b-2 border-black pb-4">
+                    <h2 class="text-xl font-bold uppercase">${judul}</h2>
+                    <h3 class="text-lg font-bold">SUMATIF AKHIR SEMESTER (SAS)</h3>
+                    <p class="text-sm mt-1">
+                        Mata Pelajaran: <strong>${mapel}</strong> | Kelas: <strong>${kelas}</strong><br>
+                        Semester: <strong>${semester}</strong> | Kurikulum: <strong>${kurikulum}</strong>
+                    </p>
+                </div>
+            `;
+        }
+
+        function renderNaskah() {
+            let html = buildKopHeader('NASKAH SOAL');
+            html += `<div class="mb-4 text-sm italic">Petunjuk: Jawablah pertanyaan di bawah ini dengan tepat. Jika terdapat gambar, amati dengan saksama sebelum murid menjawab.</div>`;
+            
+            html += `<div class="space-y-6">`;
+            generatedData.forEach(item => {
+                html += `<div class="flex gap-3 text-sm">
+                            <div class="font-bold">${item.no}.</div>
+                            <div class="flex-grow">
+                                ${item.img ? `<img src="${item.img}" class="max-w-xs mb-2 border p-1 bg-gray-50">` : ''}
+                                <div class="min-h-[40px] border-b border-dotted border-gray-400 pb-6 text-gray-400">
+                                    [Area untuk mengetik/menulis soal ${item.bentuk}...] 
+                                    <!-- Placeholder AI: Integrasi Gemini API di masa depan bisa membuahkan kalimat soal otomatis di sini berdasarkan TP '${item.tp}' -->
+                                </div>
+                            </div>
+                         </div>`;
+            });
+            html += `</div>`;
+            document.getElementById('content-naskah').innerHTML = html;
+        }
+
+        function renderKisiKisi() {
+            let html = buildKopHeader('KISI-KISI SOAL');
+            html += `
+                <table class="w-full text-sm text-left border border-black mb-6">
+                    <thead class="bg-gray-100 font-bold text-center">
+                        <tr>
+                            <th class="border border-black p-2 w-12">No.</th>
+                            <th class="border border-black p-2">Tujuan Pembelajaran</th>
+                            <th class="border border-black p-2">Materi</th>
+                            <th class="border border-black p-2">Indikator Soal</th>
+                            <th class="border border-black p-2">Bentuk</th>
+                            <th class="border border-black p-2 w-20">Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            generatedData.forEach(item => {
+                html += `
+                    <tr>
+                        <td class="border border-black p-2 text-center">${item.no}</td>
+                        <td class="border border-black p-2">${item.tp}</td>
+                        <td class="border border-black p-2">${item.materi}</td>
+                        <td class="border border-black p-2">${item.indikator}</td>
+                        <td class="border border-black p-2 text-center">${item.bentuk}</td>
+                        <td class="border border-black p-2 text-center">${item.tingkat}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `</tbody></table>`;
+            
+            // Kolom TTD
+            html += `
+                <div class="mt-8 flex justify-end">
+                    <div class="text-center w-64">
+                        <p class="text-sm mb-16">Guru Mata Pelajaran,</p>
+                        <p class="text-sm font-bold underline">${appState.identitas.guru}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content-kisi').innerHTML = html;
+        }
+
+        function renderKartu() {
+            const { mapel, kelas, kurikulum, guru } = appState.identitas;
+            let html = `<div class="text-center mb-6"><h2 class="text-xl font-bold uppercase">KARTU SOAL</h2></div>`;
+            
+            generatedData.forEach(item => {
+                html += `
+                    <div class="kartu-soal mb-8 text-sm">
+                        <div class="grid grid-cols-2 border-b border-black">
+                            <div class="p-2 border-r border-black font-bold text-center bg-gray-100">IDENTITAS SOAL</div>
+                            <div class="p-2 font-bold text-center bg-gray-100">KONTEN SOAL (No: ${item.no})</div>
+                        </div>
+                        <div class="grid grid-cols-3">
+                            <div class="p-2 border-r border-black col-span-1 leading-relaxed">
+                                <strong>Mata Pelajaran:</strong> ${mapel}<br>
+                                <strong>Kelas:</strong> ${kelas}<br>
+                                <strong>Kurikulum:</strong> ${kurikulum}<br>
+                                <strong>Bentuk Soal:</strong> ${item.bentuk}<br>
+                                <strong>Tingkat:</strong> ${item.tingkat}<br>
+                                <div class="mt-2 border-t border-black pt-2">
+                                    <strong>Materi:</strong><br>${item.materi}
+                                </div>
+                            </div>
+                            <div class="p-3 col-span-2 relative">
+                                <div class="font-bold mb-2">Indikator:</div>
+                                <div class="italic mb-4 text-xs">${item.indikator}</div>
+                                
+                                <div class="font-bold mb-2">Rumusan Soal:</div>
+                                ${item.img ? `<img src="${item.img}" class="max-h-24 mb-2">` : ''}
+                                <div class="h-20 border-b border-dotted border-gray-400"></div>
+                                
+                                <div class="font-bold mt-4 mb-2">Kunci Jawaban:</div>
+                                <div class="h-10 border-b border-dotted border-gray-400"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('content-kartu').innerHTML = html;
+        }
+
+        function renderKunci() {
+            let html = buildKopHeader('KUNCI JAWABAN & PEDOMAN PENSKORAN');
+            
+            html += `
+                <table class="w-full text-sm text-left border border-black mb-6">
+                    <thead class="bg-gray-100 font-bold text-center">
+                        <tr>
+                            <th class="border border-black p-2 w-12">No.</th>
+                            <th class="border border-black p-2">Kunci Jawaban</th>
+                            <th class="border border-black p-2 w-24">Skor Maksimal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            generatedData.forEach(item => {
+                // Tentukan skor default berdasar bentuk
+                let skor = 1;
+                if (item.bentuk === 'Isian Singkat') skor = 2;
+                if (item.bentuk === 'Uraian') skor = (item.tingkat === 'Sulit') ? 5 : 4;
+
+                html += `
+                    <tr>
+                        <td class="border border-black p-2 text-center">${item.no}</td>
+                        <td class="border border-black p-2 text-gray-400 italic">[Tulis Kunci Jawaban di sini]</td>
+                        <td class="border border-black p-2 text-center">${skor}</td>
+                    </tr>
+                `;
+            });
+            html += `</tbody></table>`;
+            document.getElementById('content-kunci').innerHTML = html;
+        }
+
+
+        /**
+         * NAVIGASI TAB & CETAK
+         */
+        function switchTab(target) {
+            // Update UI Tab Button
+            ['naskah', 'kisi', 'kartu', 'kunci'].forEach(id => {
+                const btn = document.getElementById('tab-' + id);
+                if (id === target) {
+                    btn.classList.add('tab-active');
+                    btn.classList.remove('tab-inactive');
+                } else {
+                    btn.classList.add('tab-inactive');
+                    btn.classList.remove('tab-active');
+                }
+            });
+
+            // Update Konten
+            ['naskah', 'kisi', 'kartu', 'kunci'].forEach(id => {
+                const div = document.getElementById('content-' + id);
+                if (id === target) {
+                    div.classList.remove('hidden');
+                    div.classList.add('block');
+                    // Sinkronkan ke area print khusus
+                    document.getElementById('print-area').innerHTML = div.innerHTML;
+                } else {
+                    div.classList.add('hidden');
+                    div.classList.remove('block');
+                }
+            });
+        }
+
+        function backToSetup() {
+            document.getElementById('view-results').classList.add('hidden');
+            document.getElementById('view-results').classList.remove('flex');
+            document.getElementById('view-setup').classList.remove('hidden');
+        }
+
+    </script>
+</body>
+</html>
