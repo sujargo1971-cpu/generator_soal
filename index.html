@@ -79,33 +79,65 @@
     <main id="main-container" class="flex-grow max-w-7xl mx-auto w-full px-4 py-6">
 
         <!-- VIEW 0: LOGIN -->
-        <section id="view-login" class="min-h-[70vh] flex items-center justify-center">
+        <section id="view-login" class="min-h-[70vh] flex items-center justify-center hidden">
             <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border border-gray-100">
                 <div class="text-center mb-8 border-b-2 border-corporate-500 pb-4">
                     <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-corporate-100 text-corporate-600 mb-4">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-800 tracking-wide uppercase">SMART SAS BUILDER V2</h1>
-                    <p class="text-sm text-gray-500 mt-2">Masuk untuk memulai penyusunan evaluasi</p>
                 </div>
 
                 <div class="space-y-5">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Username (Peran)</label>
-                        <select id="login-username" class="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-corporate-500 focus:border-corporate-500 bg-gray-50">
-                            <option value="admin">Admin</option>
-                            <option value="guru">Guru</option>
-                        </select>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Username</label>
+                        <input type="text" id="login-username" class="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-corporate-500 focus:border-corporate-500" placeholder="Masukkan username...">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
                         <input type="password" id="login-password" class="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-corporate-500 focus:border-corporate-500" placeholder="Masukkan password...">
-                        <p class="text-xs text-gray-400 mt-1 italic">*Gunakan password bebas untuk simulasi demo (cth: 123)</p>
                     </div>
                     <button onclick="doLogin()" class="w-full bg-corporate-600 hover:bg-corporate-700 text-white font-bold py-3 px-4 rounded-md transition shadow-md flex items-center justify-center gap-2 mt-4">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                        Masuk Aplikasi
+                        Masuk
                     </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW ADMIN: MANAJEMEN PENGGUNA -->
+        <section id="view-admin" class="space-y-6 hidden">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-lg font-bold text-gray-800 border-b pb-2 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-corporate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    Manajemen Pengguna (Guru)
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Username Baru</label>
+                        <input type="text" id="new-user-name" class="w-full border border-gray-300 rounded-md p-2 focus:ring-corporate-500 focus:border-corporate-500" placeholder="Username guru...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="text" id="new-user-pass" class="w-full border border-gray-300 rounded-md p-2 focus:ring-corporate-500 focus:border-corporate-500" placeholder="Password akun guru...">
+                    </div>
+                </div>
+                <button onclick="addGuru()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow transition mb-8 text-sm">Tambahkan Akun Guru</button>
+
+                <h3 class="font-bold text-gray-700 mb-3 border-b pb-1">Daftar Pengguna Sistem</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left border border-gray-300">
+                        <thead class="bg-gray-100 text-gray-700">
+                            <tr>
+                                <th class="p-2 border">Username</th>
+                                <th class="p-2 border w-40 text-center">Role</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <!-- Di-render oleh JS -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </section>
@@ -243,9 +275,15 @@
          */
         const STORAGE_KEY = 'smart_sas_draft_v2';
         // URL WebApp GAS Anda (Isi jika hosting di GitHub Pages agar terhubung ke Spreadsheet)
-        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwJ1VBsGjmlH-eKFWXdpHcRFhZx0GJwZ8WHqUo-cQv-or9SlMHaEdYF-RlnK-ugDHz0/exec'; 
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxfIXtu7BqLLVTaAh3C_OQuAlwK_eTGkqcSDkJEBpQagzmS_YvOWP3GP60zgdUtJ6VT/exec'; 
         // Simulasi Database Global GAS
-        let db = { archives: [] }; 
+        let db = { 
+            archives: [],
+            users: [
+                { Username: 'admin', Password: 'admin123', Role: 'admin' },
+                { Username: 'guru1', Password: '123', Role: 'guru' }
+            ]
+        }; 
 
         let appState = {
             identitas: {
@@ -263,7 +301,10 @@
         window.onload = init;
 
         function init() {
-            checkLogin();
+            // Load database ke memory dulu agar kredensial admin/guru dapat divalidasi
+            loadServerData(() => {
+                checkLogin();
+            });
         }
 
         /**
@@ -271,8 +312,11 @@
          */
         function checkLogin() {
             const isLoggedIn = sessionStorage.getItem('sas_logged_in');
+            const role = sessionStorage.getItem('sas_role');
+            
             if (isLoggedIn) {
-                showSetup();
+                if (role === 'admin') showAdmin();
+                else showSetup();
             } else {
                 showLogin();
             }
@@ -282,15 +326,26 @@
             const user = document.getElementById('login-username').value;
             const pass = document.getElementById('login-password').value;
             
-            if (!pass) {
-                alert('Silakan masukkan password!');
+            if (!user || !pass) {
+                alert('Silakan masukkan username dan password!');
                 return;
             }
 
-            sessionStorage.setItem('sas_logged_in', 'true');
-            sessionStorage.setItem('sas_role', user);
+            // Validasi kredensial ke Database
+            const foundUser = db.users && db.users.find(u => u.Username === user && u.Password === pass);
             
-            showSetup();
+            if (foundUser) {
+                sessionStorage.setItem('sas_logged_in', 'true');
+                sessionStorage.setItem('sas_role', foundUser.Role);
+                
+                if (foundUser.Role === 'admin') {
+                    showAdmin();
+                } else {
+                    showSetup();
+                }
+            } else {
+                alert('Username atau password tidak ditemukan/salah!');
+            }
         }
 
         function logout() {
@@ -303,16 +358,17 @@
             document.getElementById('main-header').classList.add('hidden');
             document.getElementById('view-setup').classList.add('hidden');
             document.getElementById('view-results').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
             document.getElementById('view-login').classList.remove('hidden');
         }
 
         function showSetup() {
             document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
             document.getElementById('main-header').classList.remove('hidden');
             document.getElementById('view-setup').classList.remove('hidden');
             
             loadLocalDraft(); // Load draft jika browser refresh
-            loadServerData(); // Mode Simulasi / Load GAS Spreadsheet
 
             if (appState.blocks.length === 0) {
                 addBlock();
@@ -322,6 +378,95 @@
             populateIdentitasUI();
             setupAutoSave();
             updateSummary();
+        }
+
+        function showAdmin() {
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-setup').classList.add('hidden');
+            document.getElementById('view-results').classList.add('hidden');
+            document.getElementById('main-header').classList.remove('hidden');
+            document.getElementById('view-admin').classList.remove('hidden');
+            renderUsersTable();
+        }
+
+        /**
+         * ADMIN FUNCTIONS
+         */
+        function renderUsersTable() {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+            if (db.users) {
+                db.users.forEach(u => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="p-2 border font-medium">${u.Username}</td>
+                            <td class="p-2 border text-center uppercase text-xs font-bold text-gray-500">${u.Role}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function addGuru() {
+            const user = document.getElementById('new-user-name').value;
+            const pass = document.getElementById('new-user-pass').value;
+            
+            if(!user || !pass) {
+                alert('Silakan lengkapi username dan password!');
+                return;
+            }
+
+            const record = { username: user, password: pass };
+            startLoading();
+
+            if (typeof google !== 'undefined') {
+                google.script.run
+                    .withSuccessHandler(res => {
+                        db = res;
+                        alert('Akun Guru berhasil ditambahkan!');
+                        document.getElementById('new-user-name').value = '';
+                        document.getElementById('new-user-pass').value = '';
+                        renderUsersTable();
+                        endLoading();
+                    })
+                    .withFailureHandler(err => {
+                        alert("Gagal menyimpan ke sistem: " + err);
+                        endLoading();
+                    })
+                    .saveUser(record);
+            } else if (GAS_API_URL !== '') {
+                fetch(GAS_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'saveUser', data: record })
+                })
+                .then(response => response.json())
+                .then(res => {
+                    if(res.status === 'success') {
+                        db = res.data;
+                        alert('Akun Guru berhasil ditambahkan via API!');
+                        document.getElementById('new-user-name').value = '';
+                        document.getElementById('new-user-pass').value = '';
+                        renderUsersTable();
+                    } else {
+                        alert("Gagal: " + res.message);
+                    }
+                    endLoading();
+                })
+                .catch(err => {
+                    alert("Error Koneksi: " + err);
+                    endLoading();
+                });
+            } else {
+                // Simulasi
+                setTimeout(() => {
+                    db.users.push({Username: user, Password: pass, Role: 'guru'});
+                    alert('Simulasi: Akun Guru berhasil ditambahkan di memory lokal!');
+                    document.getElementById('new-user-name').value = '';
+                    document.getElementById('new-user-pass').value = '';
+                    renderUsersTable();
+                    endLoading();
+                }, 500);
+            }
         }
 
         /**
@@ -337,7 +482,7 @@
             document.getElementById('loading-overlay').classList.remove('flex');
         }
 
-        function loadServerData() {
+        function loadServerData(callback) {
             startLoading();
             if (typeof google !== 'undefined') {
                 // MODE PRODUCTION 1 (Host di Google Apps Script)
@@ -347,10 +492,12 @@
                         db = res;
                         console.log("Database dimuat:", db);
                         endLoading();
+                        if(callback) callback();
                     })
                     .withFailureHandler(err => {
                         console.error(err);
                         endLoading();
+                        if(callback) callback();
                     })
                     .getAllData();
             } else if (GAS_API_URL !== '') {
@@ -362,16 +509,19 @@
                         db = res;
                         console.log("Database dimuat via API:", db);
                         endLoading();
+                        if(callback) callback();
                     })
                     .catch(err => {
                         console.error("Gagal load dari API", err);
                         endLoading();
+                        if(callback) callback();
                     });
             } else {
                 // MODE SIMULASI (Canvas / Lokal tanpa URL)
                 console.log("Mode Simulasi Aktif: Menggunakan dummy/memory database");
                 setTimeout(() => {
                     endLoading();
+                    if(callback) callback();
                 }, 500);
             }
         }
